@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "12+avzxe5dU=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Jhon Sanabria\\source\\repos\\NovaExpediente-Desarollo\\Domain\\Domain.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Jhon Sanabria\\.nuget\\packages\\microsoft.dependencyvalidation.analyzers\\0.11.0\\microsoft.dependencyvalidation.analyzers.0.11.0.nupkg.sha512",
+    "C:\\Users\\Jhon Sanabria\\.nuget\\packages\\system.componentmodel.annotations\\4.7.0\\system.componentmodel.annotations.4.7.0.nupkg.sha512"
+  ],
+  "logs": []
+}

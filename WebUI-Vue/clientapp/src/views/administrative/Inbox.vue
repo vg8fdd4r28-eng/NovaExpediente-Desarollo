@@ -1,0 +1,606 @@
+<template>
+  <div class="wrapper vld-parent" ref="formContainer">
+    <div>
+
+    <CCard style="border-radius: 16px !important; margin-top: 20px;">
+      <CCardHeader style="border-radius: 16px !important;  padding-bottom: 0px; border-bottom: transparent !important; background-color: #FFFFFF;">
+        <strong>Pendientes de atender</strong>
+      </CCardHeader>
+      <CCardBody style="padding-top: 0px; padding-bottom: 0px;">        
+        <p> Lista de solicitudes administrativas pendientes de atender.</p>
+      </CCardBody>
+    </CCard> 
+
+                      <CRow>
+                        <CCol md="8" sm="12" class="mb-1">
+                          <div class="table-header ">
+                            <span class="p-input-icon-left w-75">
+                              <i class="pi pi-search" />
+                              <InputText
+                                v-model="filters['global']"
+                                placeholder="Escribe aquí lo que buscas"
+                                class="w-100"
+                              />
+                            </span>
+                          </div>
+                        </CCol>
+                        <CCol md="4" sm="4" class="pull-right mb-1" style="">
+                          <CButton
+                            color="primary"
+                            @click="refrescar"
+                            class="pull-right btn btn-info libro-marca-celeste onHoverDark ml-1 "
+                          >
+                            <i class="pi pi-refresh"></i>
+                            Refrescar</CButton
+                          >
+                          <CButton
+                            color="primary"
+                            @click="clearFilters"
+                            class="pull-right btn btn-info libro-marca-celeste onHoverDark "
+                          >
+                            <i class="pi pi-trash"></i>
+                            Limpiar filtros</CButton
+                          >
+                        </CCol>
+                      </CRow>
+
+      <CRow>
+        <CCol col>
+          <!-- <CCard style="border-radius: 16px !important; margin-top: 20px;">
+           <CCardHeader style="border-radius: 16px !important; border-bottom: transparent !important; background-color: #FFFFFF;">
+            </CCardHeader>
+            <CCardBody> -->
+              <CRow>
+                <CCol lg="12">
+                  <!-- Tabla con la lista de solicitudes -->
+                  <DataTable
+                    ref="dt"
+                    :value="solicitudes"
+                    :paginator="true"
+                    class="p-datatable-colaboradores p-datatable-striped p-datatable-sm"
+                    :rows="10"
+                    dataKey="idSolicitud"
+                    :rowHover="true"
+                    :filters.sync="filters"
+                    :loading="loading"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    :rowsPerPageOptions="[5, 10, 25, 50]"
+                    currentPageReportTemplate="Mostrando del {first} al {last} de {totalRecords} solicitudes"
+                    sortField="idSolicitud"
+                    :sortOrder="-1"
+                    stateStorage="session"
+                    stateKey="dt-state-mibuzon-admin"
+                    :autoLayout="true"
+                    @update:filters="filterApplied"
+                    @filter="filterApplied"
+                  >
+                    <!-- Personalización de las secciones de la tabla -->
+                    <template #header>
+
+                      <div>
+                        <CBadge
+                          v-show="filters.idiomas"
+                          v-for="item in filters.idiomas"
+                          :key="item.idnivelidioma"
+                          color="secondary"
+                          class="mr-2"
+                        >
+                          {{ item }}
+                        </CBadge>
+                        <CBadge
+                          v-show="filters.certificaciones"
+                          v-for="item in filters.certificaciones"
+                          :key="item.idcertificacion"
+                          color="secondary"
+                          class="mr-2"
+                        >
+                          {{ item }}
+                        </CBadge>
+                      </div>
+                    </template>
+                    <template #empty>
+                      No se encontraron solicitudes.
+                    </template>
+                    <template #loading>
+                      Cargando la información de solicitudes. Por favor espere.
+                    </template>
+
+                    <!-- Identificador solicitud -->
+                    <Column
+                      field="idSolicitud"
+                      header="Id"
+                      :sortable="true"
+                      headerStyle="width:8%;"
+                    >
+                      <template #body="slotProps">
+                        <span class="p-column-title">Id</span>
+                        {{ slotProps.data.idSolicitud }}
+                      </template>
+                      <!-- <template #filter>
+                                <InputText type="text" v-model="filters['name']" class="p-column-filter" placeholder="Search by name"/>
+                            </template> -->
+                    </Column>
+
+                    <!-- Tipo de solicitud -->
+                    <Column
+                      header="Tipo de Solicitud"
+                      :sortable="true"
+                      sortField="tipoSolicitud"
+                      filterField="tipoSolicitud"
+                      filterMatchMode="contains"
+                      headerStyle="width:15%;"
+                    >
+                      <template #body="slotProps">
+                        <span class="p-column-title">Tipo de Solicitud</span>
+
+                        <a
+                          href=""
+                          style="cursor: hand;"
+                          @click.prevent="mostrarSolicitud(slotProps.data)"
+                          >{{ slotProps.data.tipoSolicitud }}</a
+                        >
+                      </template>
+                    </Column>
+
+                    <!-- Estado de la solicitud -->
+                    <Column
+                      header="Estado"
+                      :sortable="true"
+                      sortField="estado"
+                      filterField="estado"
+                      filterMatchMode="contains"
+                    >
+                      <template #body="slotProps">
+                        <span class="p-column-title">Estado</span>
+                        {{ slotProps.data.estado }}
+                      </template>
+                    </Column>
+
+                    <!-- Solicitante -->
+                    <Column
+                      header="Solicitante"
+                      :sortable="true"
+                      sortField="autor"
+                      filterField="autor"
+                      filterMatchMode="contains"
+                    >
+                      <template #body="slotProps">
+                        <span class="p-column-title">Autor</span>
+                        {{ slotProps.data.autor }}
+                      </template>
+                    </Column>
+
+                    <!-- Responsable -->
+                    <Column
+                      header="Responsable"
+                      :v-show="this.$root.userRoles.some(p => p == 'xxx')"
+                      :sortable="true"
+                      sortField="responsable"
+                      filterField="responsable"
+                      filterMatchMode="contains"
+                    >
+                      <template #body="slotProps">
+                        <span class="p-column-title">Responsable</span>
+                        {{ slotProps.data.responsable }}
+                      </template>
+                    </Column>
+
+                    <!-- Solicitada el -->
+                    <Column
+                      header="Solicitada el"
+                      :sortable="true"
+                      sortField="fechaModificacion"
+                      filterField="fechaModificacion"
+                      filterMatchMode="contains"
+                    >
+                      <template #body="slotProps">
+                        <span class="p-column-title">Fecha modificación</span>
+                        {{ formatearFecha(slotProps.data.fechaModificacion) }}
+                      </template>
+                    </Column>
+                  </DataTable>
+                </CCol>
+              </CRow>
+            <!-- </CCardBody>
+          </CCard> -->
+        </CCol>
+      </CRow>
+    </div>
+  </div>
+</template>
+
+<script>
+import Vue from "vue";
+import XLSX from "sheetjs-style";
+
+// métodos comunes
+import common_admin from "./common-admin.js";
+import common from "../masterdata/common.js";
+
+// Llamadas AJAX
+import {
+  GetSolicitudesPorPerfil,
+  GetSolicitudesBuzon
+} from "./request";
+
+export default {
+  name: "Inbox",
+  mixins: [common_admin, common],
+  data() {
+    return {
+      dt: null,
+      solicitudes: null,
+      filters: {},
+      loading: true,
+      tiposDeSolicitud: [],
+      empresasCorp: [],
+      solicitudSeleccionada: 0,
+      optionsRadio: [
+        // "Option1",
+        { value: "Todos", label: "Todos", props: { checked: true } },
+        {
+          value: "Seleccionados",
+          label: "Seleccionados",
+          props: { disabled: true }
+        }
+      ],
+      syncRadios: "Todos",
+
+      //cv
+      exportarModalCV: false,
+
+      optionsRadioCV: [
+        // "Option1",
+        { value: "Todos", label: "Todos", props: { checked: true } },
+        {
+          value: "Seleccionados",
+          label: "Seleccionados"
+          //,props: { desription: "description text" }
+        }
+      ],
+      syncRadiosCV: "Todos",
+      tiposCV: [],
+      CVseleccionado: 1,
+      loader: null,
+      esGrupo: true
+    };
+  },
+  async mounted() {
+    await this.cargarDatos();
+  },
+  methods: {
+    clearFilters() {
+      this.filters = {};
+    },
+    async refrescar() {
+      await this.cargarDatos();
+    },
+    filterApplied(e) {},
+    /**
+     * Retorna una promesa para obtener la lista de solicitudes
+     */
+    async getLista(id, tipo) {
+      try {
+        return GetSolicitudesBuzon(id, tipo);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    
+    /**
+     * Obtiene los datos del tipo de solicitud que el usuario desea crear
+     * para luego invocar el método que se encarga de mostrar la vista
+     * según el tipo de solicitud
+     */
+    async crearSolicitud() {
+      try {
+        let inbox = this;        
+
+        // busca el tipo de solicitud seleccionada por el usuario
+        let indice = this.tiposDeSolicitud.findIndex(function(tipo, index) {
+          if (tipo.value == inbox.solicitudSeleccionada) return true;
+        });
+        // carga el formulario según el tipo de solicitud
+        this.cargarSolicitud(
+          this.obtenerObjetoCargarSolicitud(
+            inbox.tiposDeSolicitud[indice].value,
+            inbox.tiposDeSolicitud[indice].label,
+            null // solicitud nueva
+          )
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    /**
+     * Obtiene los datos del tipo de solicitud asociada a la solicitud
+     * que el usuario desea abrir para luego invocar el método que se
+     * encarga de mostrar la vista según el tipo de solicitud
+     *
+     * @datosSolicitud datos de la solicitud que seleccionada por el usuario
+     */
+    mostrarSolicitud(datosSolicitud) {
+      // carga el formulario según el tipo de solicitud
+      this.cargarSolicitud(
+        this.obtenerObjetoCargarSolicitud(
+          datosSolicitud.idTipoSolicitud,
+          datosSolicitud.tipoSolicitud,
+          datosSolicitud.idSolicitud,
+          datosSolicitud.idusuarioresponsable
+        )
+      );
+    },
+    /**
+     * Redirige al usuario a la vista correspondiente del tipo de solicitud
+     */
+    cargarSolicitud(solicitud) {
+      this.$router.push({
+        name: "Administrative",
+        params: {
+          origen: "PendientesAtender", // origen desde donde se accedio la vista
+          idTipoSolicitud: solicitud.idTipoSolicitud, // id del tipo de la solicitud generada
+          tipoSolicitud: solicitud.tipoSolicitud, // nombre del tipo de la solicitud generada
+          idSolicitud: solicitud.idSolicitud,// id de la solicitud
+          idResponsable:solicitud.idResponsable // id  del responsable de la solicitud
+        }
+      });
+    },
+    /**
+     * Genera objeto con los datos de la solicitud que se desea mostrar
+     */
+    obtenerObjetoCargarSolicitud(idTipoSolicitud, tipoSolicitud, idSolicitud,idResponsable) {
+      return {
+        idTipoSolicitud: idTipoSolicitud,
+        tipoSolicitud: tipoSolicitud,
+        idSolicitud: idSolicitud,
+        idResponsable: idResponsable
+      };
+    },
+    /**
+     * Retorna la promesa asociada a la llamada asíncrona
+     * del API que devuelve la lista de tipos de solicitud
+     * según el perfil del usuario
+     */
+    async obtenerTiposSolicitudes() {
+      return await GetSolicitudesPorPerfil();
+    },
+    /***
+     * Carga lo datos requeridos para la vista
+     */
+    async cargarDatos() {
+      let inbox = this;
+      let loader = inbox.showLoader();
+      let root = this.$root;
+
+      inbox.loading = true;
+      let esDM = this.$root.userRoles.some((p) => p == "Expediente.DM");
+
+      await inbox
+        .getLista(this.$root.infoColaboradorActual.id,
+        esDM == true ? "MiBuzonAdminDM" : "MiBuzonAdmin")
+        // lista de solicitudes
+        .then(function(result) {
+          inbox.solicitudes = result.data.solicitudesMasterData;
+          inbox.loading = false;
+          
+          root.infoColaboradorActual.contadorAdminInbox = result.data.count;
+          root.refreshInboxAdminCounter();
+
+          inbox.hideLoader(loader);
+          return inbox.obtenerTiposSolicitudes();
+        })
+        // tipos de solicitudes
+        .then(function(result) {
+          inbox.tiposDeSolicitud = result.data.tiposDeSolicitud.map(
+            ({ idTipoSolicitud, tipoSolicitud }) => ({
+              value: idTipoSolicitud,
+              label: tipoSolicitud
+            })
+          );
+          if (inbox.tiposDeSolicitud.length > 0)
+            inbox.solicitudSeleccionada = inbox.tiposDeSolicitud[0].value;
+          else inbox.solicitudSeleccionada = 0;
+        })
+        .catch(error => {
+          console.error("(2) Inside error:", error);
+        });
+    }
+  }
+};
+</script>
+
+<style>
+  @import 'styles.css';
+
+.p-datatable .p-datatable-tbody > tr > td {
+    border: 1px solid rgba(175, 189, 216, 1)
+}
+.p-datatable table {
+  width: 99%;
+  background-color: #f8f8f8;
+}
+
+.p-datatable .p-paginator-bottom {
+    width: 99%;
+}
+
+
+/* .label-title {
+  font-weight: 700;
+}
+.label-name {
+  font-variant: small-caps;
+  text-align: center;
+}
+.libro-marca-azuloscuro {
+  background-color: #002e6e !important;
+}
+.libro-marca-celeste {
+  background-color: #29abe2;
+}
+
+.breadcrumb-item + .font-xl.breadcrumb-item::before {
+  color: rgb(140, 195, 38);
+  content: ">>";
+  padding: 0px 10px;
+}
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(173, 216, 230, 0.5) !important;
+}
+.page-item.active .page-link {
+  background-color: #29abe2;
+  border-color: #29abe2;
+}
+.page-link {
+  color: #29abe2;
+}
+.btn-link {
+  color: #002e6e;
+}
+.pagination {
+  justify-content: flex-end !important;
+}
+
+.modal-header {
+  background-color: #002e6e !important;
+}
+.modal-primary .modal-content {
+  border-color: #002e6e !important;
+}
+*/
+
+/* Configuración de estilos para tabla PRIMEVUE */
+/* INICIO */
+
+/* Se modifica el tamaño de la letra a 14px 
+.p-component {
+  font-size: 0.875rem !important;
+}
+.p-dropdown-label.p-inputtext {
+  font-size: 0.875rem !important;
+}*/
+
+/* Se oculta la flecha del dropdown 
+.dropdown-toggle::after {
+  display: none;
+}
+.dropleft .dropdown-toggle::before {
+  display: none;
+}*/
+
+/* tamaño de letra el componente de paginación 
+.p-paginator-icon {
+  font-size: 0.875rem !important;
+}*/
+
+/* Responsive: en visualización normal se ocultan las etiquetas asociadas al título de cada columna 
+.p-datatable-colaboradores .p-datatable-tbody > tr > td .p-column-title {
+  display: none;
+}*/
+/* configuración del encabezado y cuerpo de la tabla 
+.p-datatable-colaboradores .p-datatable-thead > tr > th {
+  background-color: rgb(12, 123, 190) !important;
+  color: white !important;
+}
+.p-datatable-colaboradores .p-datatable-tbody > tr > td {
+  overflow-wrap: break-word;
+}
+.p-datatable .p-datatable-header {
+  background-color: unset;
+  border: unset;
+}*/
+
+/* configuración de los íconos de ordenamiento 
+.p-datatable .p-sortable-column .p-sortable-column-icon {
+  color: darkgray;
+  font-size: 0.75rem;
+}
+.p-datatable .p-sortable-column.p-highlight .p-sortable-column-icon {
+  color: white;
+}*/
+
+/* configuración del "striped" y fila seleccionada de una tabla 
+.p-datatable.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) {
+  background-color: rgba(173, 216, 230, 0.5);
+}
+
+.p-datatable .p-datatable-tbody > tr.p-highlight {
+  background: rgba(12, 123, 190, 0.5);
+}
+
+.p-datatable.p-datatable-striped
+  .p-datatable-tbody
+  > tr:nth-child(even).p-highlight {
+  background: rgba(12, 123, 190, 0.5);
+}
+
+.btn-opciones {
+  display: none;
+}
+*/
+/* soporte a responsive para que cada fila de la tabla se presente mediante la combinación de
+   etiqueta y valor asociado 
+@media screen and (max-width: 40em) {
+  .p-datatable.p-datatable-colaboradores .p-datatable-thead > tr > th {
+    display: none !important;
+  }
+
+  .p-datatable.p-datatable-colaboradores .p-datatable-tfoot > tr > td {
+    display: none !important;
+  }
+
+  .p-datatable.p-datatable-colaboradores .p-datatable-tbody > tr > td {
+    text-align: left;
+    display: block;
+    width: 100%;
+    float: left;
+    clear: left;
+    border: 0 none;
+  }
+
+  .p-datatable-colaboradores .p-datatable-tbody > tr > td .p-column-title {
+    padding: 0.4rem;
+    min-width: 30%;
+    display: inline-block !important;
+    margin: -0.4em 1em -0.4em -0.4rem;
+    font-weight: bold;
+    width: 100%;
+  }
+
+  .p-datatable.p-datatable-colaboradores:last-child {
+    border-bottom: 1px solid var(--surface-d);
+  }
+
+  .dropdown-toggle::after {
+    display: inline-block;
+  }
+  .dropleft .dropdown-toggle::before {
+    display: inline-block;
+  }
+  .dropleft {
+    display: none;
+  }
+  .pi-ellipsis-v {
+    display: none;
+  }
+  .btn-opciones {
+    display: flex;
+  }
+  .p-paginator-bottom {
+    padding: 0px;
+  }
+}*/
+/* FIN */
+/*
+.p-dialog-header{
+  background-color: #002e6e !important;
+  color: white !important;
+  padding: .5rem !important;
+}
+.p-dialog-header-close{
+  color: white !important;
+}
+.p-dialog-header-maximize-icon{
+  color: white !important;
+} */
+</style>

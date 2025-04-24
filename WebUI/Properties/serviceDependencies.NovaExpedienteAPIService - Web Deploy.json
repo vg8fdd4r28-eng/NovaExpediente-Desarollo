@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "mssql1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/novaexpediente-db-server/databases/NovaExpediente",
+      "type": "mssql.azure",
+      "connectionId": "NovaExpedienteDatabase",
+      "secretStore": "AzureAppSettings"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Domain\bin\Debug\netstandard2.1\NovaExpediente.Domain.deps.json
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Domain\bin\Debug\netstandard2.1\NovaExpediente.Domain.dll
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Domain\bin\Debug\netstandard2.1\NovaExpediente.Domain.pdb
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Domain\obj\Debug\netstandard2.1\Domain.csproj.AssemblyReference.cache
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Domain\obj\Debug\netstandard2.1\Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Domain\obj\Debug\netstandard2.1\Domain.AssemblyInfoInputs.cache
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Domain\obj\Debug\netstandard2.1\Domain.AssemblyInfo.cs
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Domain\obj\Debug\netstandard2.1\Domain.csproj.CoreCompileInputs.cache
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Domain\obj\Debug\netstandard2.1\NovaExpediente.Domain.dll
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Domain\obj\Debug\netstandard2.1\NovaExpediente.Domain.pdb

@@ -1,0 +1,680 @@
+<template>
+  <div>
+    <CRow>
+      <CCol>
+        <CButton
+          block
+          color="primary"
+          @click="atras()"
+          class="btn btn-primary btn-lg"
+          style="height: 40px; width: 130px;float: right; color: rgba(98, 184, 235, 1); background-color: transparent; border-color: transparent;"
+        >
+          <i class="pi pi-arrow-circle-left"></i>&nbsp;Regresar</CButton
+        >
+      </CCol>
+    </CRow>
+
+    <CCard style="border-radius: 16px !important;">
+      <CCardHeader
+        style="border-radius: 16px !important; border-bottom: transparent !important; background-color: #FFFFFF;"
+      >
+        <strong> Asignar ubicación a un colaborador</strong>
+        <small> Datos Personales </small>
+        <CBadge
+          color="primary"
+          class="mr-2 libro-marca-azuloscuro"
+          shape="pill"
+          v-if="this.datosSolicitud.idSolicitudMasterData"
+        >
+          <span style="margin-top:.2rem; margin-bottom:.2rem">
+            {{ this.datosSolicitud.idSolicitudMasterData }}
+          </span>
+        </CBadge>
+        <CBadge
+          :color="this.obtenerColorEstado(this.datosSolicitud.estadoSolicitud)"
+          class="mr-2"
+          shape="pill"
+        >
+          <span style="margin-top:.2rem; margin-bottom:.2rem">
+            {{
+              this.obtenerDescripcionEstado(this.datosSolicitud.estadoSolicitud)
+            }}
+          </span>
+        </CBadge>
+      </CCardHeader>
+      <CCardBody>
+        <resumen-colaborador
+          :colaborador.sync="colaborador"
+          :estado-solicitud="datosSolicitud.estadoSolicitud"
+          :searchable="pickPuedeBuscarColaborador"
+          :editable="false"
+          :habilitar-controles="
+            this.habilitarControlesSolicitud(
+              this.datosSolicitud.estadoSolicitud,
+              this.origen
+            )
+          "
+          @displayModal="displayModal"
+        >
+        </resumen-colaborador>
+      </CCardBody>
+    </CCard>
+
+    <CCard style="border-radius: 16px !important;">
+      <CCardHeader
+        style="border-radius: 16px !important; border-bottom: transparent !important; background-color: #FFFFFF;"
+      >
+      </CCardHeader>
+      <CCardBody>
+        <FormulateForm
+          v-model="solicitud"
+          name="solicitud"
+          @submit="submitSolicitud"
+        >
+          <CRow style="margin-bottom: 20px;">
+            <CCol sm="6">
+              <h2 class="text-divider">
+                <span>Ubicación actual</span>
+              </h2>
+              <CRow>
+                <CCol sm="12" class="align-self-center mt-4">
+                  <b>{{ this.clienteNombre }}</b>
+                </CCol>
+              </CRow>
+            </CCol>
+
+            <CCol sm="6">
+              <h2 class="text-divider">
+                <span>Nueva ubicación</span>
+              </h2>
+              <CRow>
+                <CCol sm="12" class="align-self-center">
+                  <FormulateInput
+                    name="cliente"
+                    :options="clientesList"
+                    type="select"
+                    label="Seleccione un cliente"
+                    placeholder="Seleccione un cliente"
+                    validation="required|not:0"
+                    validation-name="Cliente"
+                    :validation-messages="{
+                      required: 'Seleccione un cliente.',
+                      not: 'Debe de seleccionar una opción válida.'
+                    }"
+                    :input-class="['form-control']"
+                    :disabled="!this.puedePintar"
+                  />
+                </CCol>
+              </CRow>
+            </CCol>
+          </CRow>
+          <CCard
+            v-if="this.comentarios.length > 0"
+            style="border-radius: 16px !important;"
+          >
+            <CCardHeader
+              style="border-radius: 16px !important; border-bottom: transparent !important; background-color: #FFFFFF;"
+            >
+              <strong> Comentarios</strong>
+            </CCardHeader>
+            <CCardBody>
+              <comments
+                :comments_wrapper_classes="[
+                  'custom-scrollbar',
+                  'comments-wrapper'
+                ]"
+                :comments="this.comentarios"
+              ></comments>
+            </CCardBody>
+          </CCard>
+
+          <CRow style="margin-bottom: 80px;">
+            <CCol>
+              <botonera-master-data
+                :estado-solicitud="this.datosSolicitud.estadoSolicitud"
+                nombreEventoProcesar="procesarAccion"
+                @procesarAccion="procesarAccion"
+                v-if="muestraBotonera()"
+              >
+              </botonera-master-data>
+            </CCol>
+          </CRow>
+        </FormulateForm>
+      </CCardBody>
+    </CCard>
+
+    <Dialog
+      :visible.sync="showModal"
+      :style="{ width: '70vw' }"
+      :maximizable="true"
+      :modal="true"
+    >
+      <template #header>
+        <h5>{{ tituloModal }}</h5>
+      </template>
+
+      <pick-list
+        @selected="selected"
+        :nombreTipoLista="nombreTipoLista"
+        :columnas="columnasPickList"
+        :dataContenido="dataPickList"
+      ></pick-list>
+
+      <template #footer> </template>
+    </Dialog>
+
+    <confirm-dialogue ref="confirmDialogue"></confirm-dialogue>
+    <comment-dialogue ref="commentDialogue"></comment-dialogue>
+  </div>
+</template>
+
+<script>
+import {
+  GetColaboradoresPerfil,
+  GetClientes,
+  GetColaboradorDetailResumen,
+  GetDetalleSolicitud
+} from "./request";
+import PickList from "../generales/Componentes/PickList";
+import ResumenColaborador from "./ResumenColaborador";
+import BotoneraMasterData from "./BotoneraMasterData.vue";
+import Vue from "vue";
+
+// métodos comunes
+import common from "./common.js";
+
+import ConfirmDialogue from "../generales/Componentes/PopUpModal/ConfirmDialogue.vue";
+import CommentDialogue from "../generales/Componentes/PopUpModal/CommentDialogue.vue";
+import Comments from "../generales/Componentes/Comments/Comments.vue";
+
+export default {
+  name: "UbicacionColaborador",
+  mixins: [common],
+  props: {
+    origen: { type: String, default: "" }, // origen desde donde se accedio la vista
+    idTipoSolicitud: { type: Number, default: 0 }, // id del tipo de la solicitud generada
+    tipoSolicitud: { type: String, default: "" }, // nombre del tipo de la solicitud generada
+    idSolicitud: { type: Number, default: null }, // id de la solicitud, para obtener el obj Json con la informacion a cargar
+    idResponsable: { type: Number, default: null } // id  del responsable de la solicitud
+  },
+  components: {
+    "pick-list": PickList,
+    "resumen-colaborador": ResumenColaborador,
+    "botonera-master-data": BotoneraMasterData,
+    "confirm-dialogue": ConfirmDialogue,
+    "comment-dialogue": CommentDialogue,
+    comments: Comments
+  },
+  data() {
+    return {
+      colaborador: {
+        // values de colaborador
+        idcolaborador: 0,
+        identificacion: null,
+        nombre: null,
+        primerapellido: null,
+        segundoapellido: null,
+        foto: null
+      },
+      solicitud: {
+        cliente: null,
+        estado: "S"
+      },
+      clienteNombre: "",
+      comentarios: [],
+      datosSolicitud: {
+        idSolicitudMasterData: null,
+        idTipoSolicitud: this.idTipoSolicitud,
+        tipoSolicitud: this.tipoSolicitud,
+        estadoSolicitud: "RE"
+      },
+
+      showModal: false,
+      nombreTipoLista: "",
+      columnasPickList: [],
+      dataPickList: [],
+      clientesList: [],
+      cargandoDatos: false,
+      IdSolicitudJson: null, // id de la solicitud para cargar el json de una solicitud
+      tituloModal: ""
+    };
+  },
+  async mounted() {
+    // se cargarian los request en caso de ser necesario o en created...
+    await this.cargarClientes();
+
+    setTimeout(
+      () =>
+        (this.clientesList = this.clientesList.filter(
+          x => x.value != this.colaborador.idcliente
+        )),
+      1000
+    );
+
+    this.IdSolicitudJson = this.idSolicitud;
+
+    if (this.IdSolicitudJson) {
+      await this.obtenerSolicitud();
+    } else {
+      //carga el usuario en session
+      this.TipoListaPick = "Colaboradores";
+      this.selected(this.$root.infoColaboradorActual);
+    }
+  },
+  methods: {
+    
+    muestraBotonera() {
+      if (this.origen == "Inbox") {
+        if (!this.idResponsable || this.idResponsable == this.$root.infoColaboradorActual.id) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    },
+    obtenerDescripcionEstado(codigoEstadoSolicitud) {
+      switch (codigoEstadoSolicitud) {
+        case common.REGISTRADA:
+          return "Registrada";
+        case common.APROBADA:
+          return "Aprobada";
+        case common.DENEGADA:
+          return "Denegada";
+        case common.DESCARTADA:
+          return "Descartada";
+        case common.ENAPROBACION:
+          return "En aprobación";
+        case common.CORREGIR:
+          return "En correcciones";
+        case common.ENVALIDACION:
+          return "En validación";
+        case common.PENDIENTEACTUALIZACION:
+          return "Pendiente de actualización";
+        default:
+          break;
+      }
+    },
+
+    /**
+     * Invoca a un método que obtiene el documento asociado a una solicitud así como
+     * los datos propios de la solicitud
+     */
+    async obtenerSolicitud() {
+      await this.cargarSolicitud();
+    },
+    /**
+     * Carga el objeto SOLICITUD con el documento JSON que viene de base de datos
+     * @documento hilera JSON con los datos de una solicitud
+     */
+    leerDocumentoSolicitud(documento) {
+      try {
+        var colaborador = JSON.parse(documento);
+        return {
+          colaborador: {
+            idcolaborador: colaborador.idcolaborador,
+            identificacion: colaborador.identificacion,
+            nombre: colaborador.nombre,
+            primerapellido: colaborador.primerapellido,
+            segundoapellido: colaborador.segundoapellido,
+            foto: colaborador.foto
+          },
+          solicitud: {
+            estado: colaborador.estado,
+            cliente: colaborador.cliente
+          }
+        };
+      } catch (error) {
+        console.log("Error al leer el documento JSON de la solicitud");
+        console.error(error);
+      }
+    },
+    /**
+     * Invoca al API que obtiene los datos de una solicitud
+     */
+    async cargarSolicitud() {
+      this.cargandoDatos = true;
+      let loader = this.showLoader();
+
+      GetDetalleSolicitud(this.IdSolicitudJson)
+        .then(response => {
+          // objeto devuelto por el API
+          var solicitud = response.data.solicitudMasterData;
+
+          // se inicializan los datos base de la solicitud
+          this.datosSolicitud = this.getDatosSolicitud(solicitud);
+
+          this.cargarDetalleColaborador(this.datosSolicitud.idcolaborador);
+
+          let documento = this.leerDocumentoSolicitud(solicitud.docSolicitud);
+          this.solicitud = documento.solicitud;
+          this.colaborador = documento.colaborador;
+
+          //this.solicitud.iddeliverymanager = documento.solicitud.iddeliverymanager;
+
+          // comentarios de la solicitud
+          this.comentarios = solicitud.comentarios.map(
+            ({
+              idComentarioSolicitud,
+              responsable,
+              comentario,
+              accion,
+              fecha
+            }) => ({
+              id: idComentarioSolicitud,
+              responsable: responsable,
+              comentario: comentario,
+              accion: accion,
+              fecha: fecha
+            })
+          );
+
+          // se posterga la actualización del indicador de carga hasta que se haya "renderizado" la vista
+          this.terminaCargaDatos();
+          this.hideLoader(loader);
+        })
+        .catch(response => {
+          console.log(response);
+          this.terminaCargaDatos();
+          this.hideLoader(loader);
+        });
+    },
+    /**
+     * Se posterga la actualización del indicador de carga hasta que se haya "renderizado" la vista
+     */
+    terminaCargaDatos() {
+      this.$nextTick(() => {
+        this.cargandoDatos = false;
+      });
+    },
+
+    selected(item) {
+      switch (this.TipoListaPick) {
+        case "Colaboradores":
+          // obtener el detalle del colaborador
+          this.cargarDetalleColaborador(item.id);
+          this.showModal = false;
+     
+
+          break;
+
+        default:
+          break;
+      }
+    },
+    async cargarDetalleColaborador(id) {
+      this.cargandoDatos = true;
+      const {
+        data: { colaborador }
+      } = await GetColaboradorDetailResumen(id);
+
+      this.colaborador = {
+        idcolaborador: colaborador.idcolaborador,
+        identificacion: colaborador.identificacion,
+        nombre: colaborador.nombre,
+        primerapellido: colaborador.primerapellido,
+        segundoapellido: colaborador.segundoapellido,
+        foto: colaborador.foto,
+        idcliente: colaborador.idcliente
+      };
+      this.clienteNombre = colaborador.cliente;
+
+      this.cargarClientes();
+
+setTimeout(
+    () =>
+    (this.clientesList = this.clientesList.filter(
+        x => x.value != this.colaborador.idcliente
+    )),
+    1000
+);
+
+      this.terminaCargaDatos();
+    },
+    async cargarClientes() {
+      const {
+        data: { clientes }
+      } = await GetClientes();
+      this.clientesList = clientes.map(({ idcliente, nombre }) => ({
+        label: nombre,
+        value: idcliente
+      }));
+    },
+    async displayModal(tipo) {
+      this.TipoListaPick = tipo;
+      this.clean();
+      switch (tipo) {
+        case "Colaboradores":
+          // aqui estarian los request para cargar el picklist segun se requiera
+          const {
+            data: { colaboradores }
+          } = await GetColaboradoresPerfil(this.colaborador.idcolaborador); //await GetAllColaboradores();
+          this.dataPickList = colaboradores.map(
+            ({
+              idcolaborador,
+              nombreCompleto,
+              nombre,
+              identificacion,
+              primerapellido,
+              segundoapellido,
+              foto,
+              idcliente,
+              cliente
+            }) => ({
+              id: idcolaborador,
+              nombre: nombre,
+              nombreCompleto: nombreCompleto,
+              identificacion: identificacion,
+              primerapellido: primerapellido,
+              segundoapellido: segundoapellido,
+              foto: foto,
+              idcliente: idcliente,
+              cliente: cliente
+            })
+          );
+
+          this.columnasPickList = [
+            { field: "identificacion", header: "Id" },
+            { field: "nombreCompleto", header: "Nombre" }
+          ];
+
+          this.showModal = true;
+          this.nombreTipoLista = "Colaboradores";
+          this.tituloModal = "Lista de colaboradores";
+          break;
+
+        default:
+          break;
+      }
+    },
+    clean() {
+      this.showModal = false;
+      this.nombreTipoLista = "";
+      this.dataPickList = null;
+    },
+
+    // Metodos de la botonera
+
+    /**
+     * Evento para procesar la acción de los botones del flujo de trabajo
+     */
+    procesarAccion(accion) {
+      return this["procesarAccion_" + accion](
+        accion,
+        this.datosSolicitud.idSolicitudMasterData
+      );
+    },
+    /**
+     * Guarda la solicitud en la base de datos, siempre y cuando la misma tenga cambios registrados.
+     * Genera el objeto requerido para luego invocar al método común de guardado.
+     */
+    async procesarAccion_Guardar(accion, idSolicitud) {
+      if (this.solicitud.estado == common.SOLICITUD_SINMODIFICACIONES) {
+        Vue.$toast.warning(
+          "La solicitud no tiene modificaciones que guardar.",
+          {}
+        );
+      } else {
+        let datos = {
+          idSolicitud: this.datosSolicitud.idSolicitudMasterData,
+          idTipoSolicitud: this.datosSolicitud.idTipoSolicitud,
+          codigoEstado: this.datosSolicitud.estadoSolicitud,
+          idAutor: this.$root.infoColaboradorActual.id,
+          idResponsable: this.$root.infoColaboradorActual.id,
+          idColaborador: this.colaborador.idcolaborador,
+          docSolicitud: JSON.stringify({
+            ...this.colaborador.idcolaborador,
+            ...this.solicitud
+          }) //JSON.stringify(this.solicitud)
+        };
+        this.datosSolicitud.idSolicitudMasterData = await this.Guardar(
+          datos,
+          this.datosSolicitud.idSolicitudMasterData
+        );
+      }
+    },
+
+    obtenerObjetoSolicitudEnviar(accion) {
+      return {
+        idSolicitud: this.datosSolicitud.idSolicitudMasterData,
+        idTipoSolicitud: this.datosSolicitud.idTipoSolicitud,
+        codigoEstado: this.datosSolicitud.estadoSolicitud,
+        idAutor: this.$root.infoColaboradorActual.id,
+        idResponsable: this.$root.infoColaboradorActual.id,
+        idColaborador: this.colaborador.idcolaborador,
+        accion: accion,
+        docSolicitud: JSON.stringify({
+          ...this.colaborador.idcolaborador,
+          ...this.solicitud
+        })
+      };
+    },
+    async procesarAccion_Revisar(accion) {
+      let opciones = {
+        tipo: "comentario", // confirmar comentario ninguno,
+        titulo: "Solicitud de cambio",
+        mensajeDialogo:
+          "Registre una observación para el autor de la solicitud",
+        btnOk: "Enviar a revisión",
+        btnCancel: "Cancelar",
+        mensajeExito: "Solicitud enviada a revisión.",
+        mensajeError:
+          "Se ha presentado un inconveniente al enviar a revisión la solicitud de cambio."
+      };
+      await this.enviarSolicitud(accion, opciones);
+    },
+    async procesarAccion_Descartar(accion) {
+      let opciones = {
+        tipo: "comentario", // confirmar comentario ninguno,
+        titulo: "Solicitud de cambio",
+        mensajeDialogo:
+          "Registre una justificación para descartar la solicitud de cambio",
+        btnOk: "Descartar",
+        btnCancel: "Cancelar",
+        mensajeExito: "Solicitud descartada.",
+        mensajeError:
+          "Se ha presentado un inconveniente al descartar la solicitud de cambio."
+      };
+      await this.enviarSolicitud(accion, opciones);
+    },
+    async procesarAccion_Denegar(accion) {
+      let opciones = {
+        tipo: "comentario", // confirmar comentario ninguno,
+        titulo: "Solicitud de cambio",
+        mensajeDialogo:
+          "Registre una justificación para denegar la solicitud de cambio",
+        btnOk: "Denegar",
+        btnCancel: "Cancelar",
+        mensajeExito: "Solicitud denegada.",
+        mensajeError:
+          "Se ha presentado un inconveniente al denegar la solicitud de cambio."
+      };
+      await this.enviarSolicitud(accion, opciones);
+    },
+    async procesarAccion_Aprobar(accion) {
+      let opciones = {
+        tipo: "confirmar", // confirmar comentario ninguno,
+        titulo: "Solicitud de cambio",
+        mensajeDialogo: "Está seguro de aprobar la solicitud?",
+        btnOk: "Si",
+        btnCancel: "No",
+        mensajeExito: "Solicitud aprobada.",
+        mensajeError:
+          "Se ha presentado un inconveniente al aprobar la solicitud de cambio."
+      };
+      await this.enviarSolicitud(accion, opciones);
+    },
+    async enviarSolicitud(accion, opciones) {
+      try {
+        let datos = this.obtenerObjetoSolicitudEnviar(accion);
+        await this.Enviar(datos, opciones);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    async submitSolicitud(formValues) {
+      try {
+        if (this.solicitud.estado == common.SOLICITUD_SINMODIFICACIONES) {
+          Vue.$toast.warning(
+            "La solicitud no tiene modificaciones que guardar.",
+            {}
+          );
+        } else {
+          let datos = {
+            idSolicitud: this.datosSolicitud.idSolicitudMasterData,
+            idTipoSolicitud: this.datosSolicitud.idTipoSolicitud,
+            codigoEstado: this.datosSolicitud.estadoSolicitud,
+            idAutor: this.$root.infoColaboradorActual.id,
+            idResponsable: this.$root.infoColaboradorActual.id,
+            idColaborador: this.colaborador.idcolaborador,
+            accion: "Enviar",
+            docSolicitud: JSON.stringify({
+              ...this.colaborador.idcolaborador,
+              ...this.solicitud
+            })
+          };
+
+          let opciones = {
+            tipo: "confirmar", // confirmar comentario ninguno
+            titulo: "Solicitud de cambio",
+            mensajeDialogo: "Está seguro de enviar la solicitud?",
+            btnOk: "Si",
+            btnCancel: "No",
+            mensajeExito: "Solicitud enviada exitosamente.",
+            mensajeError:
+              "Se ha presentado un inconveniente al enviar la solicitud de cambio."
+          };
+
+          await this.Enviar(datos, opciones);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  },
+  watch: {
+    /**
+     * Controla el cambio de alguno de los campos de ubicacion de colaborador, esto permitirá marcar
+     * el documento con un estado de modificado
+     */
+    solicitud: function(newValue, oldValue) {
+      if (!this.cargandoDatos) {
+        this.solicitud.estado = "M";
+      }
+    }
+  },
+  computed: {
+    puedePintar() {
+      return this.habilitarControlesSolicitud(
+        this.datosSolicitud.estadoSolicitud,
+        this.origen
+      );
+    },
+    pickPuedeBuscarColaborador() {
+      return this.datosSolicitud.estadoSolicitud == common.REGISTRADA; // && !(this.usuarioActual.Roles.length == 1 && this.usuarioActual.Roles[0] == "COLABORADOR") ;
+    }
+  }
+};
+</script>

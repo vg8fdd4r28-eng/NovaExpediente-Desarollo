@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Silent Renew Token</title>
+</head>
+<body>
+    <script src='oidc-client.min.js'></script>
+    <script>  
+    debugger      
+        new Oidc.UserManager().signinSilentCallback().catch((err) => {
+            console.log("Silent-Renew.vue: " + err);
+        });
+    </script>
+</body>
+</html>

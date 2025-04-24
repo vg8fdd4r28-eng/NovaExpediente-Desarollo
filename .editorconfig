@@ -1,0 +1,7 @@
+﻿[*.cs]
+
+# Default severity for analyzer diagnostics with category 'Architecture'
+dotnet_analyzer_diagnostic.category-Architecture.severity = none
+
+# CS2001: Source file 'C:\Users\mgutierrez\source\repos\NovaExpediente\Domain\..\DependencyValidation1\DependencyValidation1.layerdiagram' could not be found.
+dotnet_diagnostic.CS2001.severity = none

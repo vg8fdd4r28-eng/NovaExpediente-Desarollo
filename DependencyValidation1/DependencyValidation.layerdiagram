@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<layerModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/SimpleShapesModel" dslVersion="1.0.0.0" Id="0ab677f6-e994-406e-9fa1-d69e1a0adc4b" xmlns="http://schemas.microsoft.com/VisualStudio/TeamArchitect/LayerDesigner">
+  <layers>
+    <layer Id="b50c4f22-a5aa-431c-847f-2a62be49f331" name="COMMON&#xD;&#xA;">
+      <references>
+        <reference Id="3c9befc3-2036-498e-841a-930722a769d1" name="NovaExpediente.Common.dll">
+          <ArtifactNode Label="NovaExpediente.Common.dll" Category="CodeSchema_Assembly" Id="(Assembly=../Common/bin/Debug/netstandard2.1/NovaExpediente.Common.dll)" />
+          <ExpandedNode Id="(Assembly=NovaExpediente.Common)" Label="NovaExpediente.Common.dll" Category="CodeSchema_Assembly">
+            <Category Ref="FileSystem.Category.FileOfType.dll" />
+            <LinkCategory Ref="Represents" />
+          </ExpandedNode>
+        </reference>
+      </references>
+    </layer>
+    <layer Id="4f909c86-9539-4718-9bf1-881f16d96b3d" name="API">
+      <dependencyToLayers>
+        <dependencyFromLayerToLayer Id="317f6254-2ded-43c9-a218-c65869fed434" direction="Forward">
+          <layerMoniker Id="cb976d20-e50a-4fc6-85b8-0b7ababa2d4f" />
+        </dependencyFromLayerToLayer>
+        <dependencyFromLayerToLayer Id="12de511d-09bd-4ba0-915a-688736cfcdc7" direction="Forward">
+          <layerMoniker Id="b50c4f22-a5aa-431c-847f-2a62be49f331" />
+        </dependencyFromLayerToLayer>
+        <dependencyFromLayerToLayer Id="9b73ab59-c14d-4cd6-af5b-f415cb917dc2" direction="Forward">
+          <layerMoniker Id="3f48fe48-e683-4c39-a9e8-4357a2965f22" />
+        </dependencyFromLayerToLayer>
+      </dependencyToLayers>
+      <references>
+        <reference Id="229ed0e5-c4ca-4cb1-806a-20aac52f5d23" name="NovaExpediente.WebUI.dll">
+          <ArtifactNode Label="NovaExpediente.WebUI.dll" Category="CodeSchema_Assembly" Id="(Assembly=../WebUI/bin/Debug/netcoreapp3.1/NovaExpediente.WebUI.dll)" />
+          <ExpandedNode Id="(Assembly=NovaExpediente.WebUI)" Label="NovaExpediente.WebUI.dll" Category="CodeSchema_Assembly">
+            <Category Ref="FileSystem.Category.FileOfType.dll" />
+            <LinkCategory Ref="Represents" />
+          </ExpandedNode>
+        </reference>
+      </references>
+    </layer>
+    <layer Id="9a331196-4f5e-4023-a4f0-3e4d44540552" name="DOMAIN">
+      <childLayers>
+        <layer Id="a94f2949-aeb5-4954-ab81-1009bd29dd7c" name="NovaExpediente.Domain&#xD;&#xA;">
+          <references>
+            <reference Id="69110b31-bca1-4ab9-9167-6b5638718b4d" name="NovaExpediente.Domain.dll">
+              <ArtifactNode Label="NovaExpediente.Domain.dll" Category="CodeSchema_Assembly" Id="(Assembly=../Domain/bin/Debug/netstandard2.1/NovaExpediente.Domain.dll)" />
+              <ExpandedNode Id="(Assembly=NovaExpediente.Domain)" Label="NovaExpediente.Domain.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+      </childLayers>
+    </layer>
+    <layer Id="f9c463d4-a7fe-4ac2-b212-fd2b389515fa" name="APPLICATION">
+      <childLayers>
+        <layer Id="2b355917-fe16-4030-9cd9-7a2bea2038ac" name="NovaExpediente.Application">
+          <dependencyToLayers>
+            <dependencyFromLayerToLayer Id="32f96b2b-09e2-4ccc-bed2-d914182b297b" direction="Forward">
+              <layerMoniker Id="a94f2949-aeb5-4954-ab81-1009bd29dd7c" />
+            </dependencyFromLayerToLayer>
+          </dependencyToLayers>
+          <references>
+            <reference Id="4c49dab5-4ee4-4c7e-bfed-cadb685f0995" name="NovaExpediente.Application.dll">
+              <ArtifactNode Label="NovaExpediente.Application.dll" Category="CodeSchema_Assembly" Id="(Assembly=../Application/bin/Debug/netstandard2.1/NovaExpediente.Application.dll)" />
+              <ExpandedNode Id="(Assembly=NovaExpediente.Application)" Label="NovaExpediente.Application.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+      </childLayers>
+    </layer>
+    <layer Id="af424c6c-4254-4528-af71-801d257e3f4f" name="INFRASTRUCTURE">
+      <childLayers>
+        <layer Id="3f48fe48-e683-4c39-a9e8-4357a2965f22" name="NovaExpediente.Infrastructure">
+          <dependencyToLayers>
+            <dependencyFromLayerToLayer Id="751f2b4f-2ef5-4222-9ca5-979b70e71ef2" direction="Forward">
+              <layerMoniker Id="b50c4f22-a5aa-431c-847f-2a62be49f331" />
+            </dependencyFromLayerToLayer>
+            <dependencyFromLayerToLayer Id="f0bffa14-4f2f-46b8-addd-4e07ffcb49b8" direction="Forward">
+              <layerMoniker Id="2b355917-fe16-4030-9cd9-7a2bea2038ac" />
+            </dependencyFromLayerToLayer>
+          </dependencyToLayers>
+          <references>
+            <reference Id="dfd3d0c2-185f-4c7c-9c20-a2ece754cb44" name="NovaExpediente.Infrastructure.dll">
+              <ArtifactNode Label="NovaExpediente.Infrastructure.dll" Category="CodeSchema_Assembly" Id="(Assembly=../Infrastructure/bin/Debug/netcoreapp3.1/NovaExpediente.Infrastructure.dll)" />
+              <ExpandedNode Id="(Assembly=NovaExpediente.Infrastructure)" Label="NovaExpediente.Infrastructure.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+      </childLayers>
+    </layer>
+    <layer Id="3193e199-9996-43b1-93e6-f1dac02ac7d2" name="PERSISTENCE">
+      <childLayers>
+        <layer Id="cb976d20-e50a-4fc6-85b8-0b7ababa2d4f" name="NovaExpediente.Persistence">
+          <dependencyToLayers>
+            <dependencyFromLayerToLayer Id="b518feb8-21eb-4904-b725-2a1a5ebc6292" direction="Forward">
+              <layerMoniker Id="b50c4f22-a5aa-431c-847f-2a62be49f331" />
+            </dependencyFromLayerToLayer>
+            <dependencyFromLayerToLayer Id="b0e59cf4-643d-4241-a10a-34687367e505" direction="Forward">
+              <layerMoniker Id="3f48fe48-e683-4c39-a9e8-4357a2965f22" />
+            </dependencyFromLayerToLayer>
+            <dependencyFromLayerToLayer Id="1a29517c-418e-47d1-81fe-dc28d9da6a25" direction="Forward">
+              <layerMoniker Id="2b355917-fe16-4030-9cd9-7a2bea2038ac" />
+            </dependencyFromLayerToLayer>
+          </dependencyToLayers>
+          <references>
+            <reference Id="f6000d3d-bbfc-4a36-82d6-ba05c34b7c63" name="NovaExpediente.Persistence.dll">
+              <ArtifactNode Label="NovaExpediente.Persistence.dll" Category="CodeSchema_Assembly" Id="(Assembly=../Persistence/bin/Debug/netcoreapp3.1/NovaExpediente.Persistence.dll)" />
+              <ExpandedNode Id="(Assembly=NovaExpediente.Persistence)" Label="NovaExpediente.Persistence.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+      </childLayers>
+    </layer>
+  </layers>
+</layerModel>

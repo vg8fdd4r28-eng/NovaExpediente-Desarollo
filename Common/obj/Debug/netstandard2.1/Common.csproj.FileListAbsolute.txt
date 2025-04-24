@@ -1,0 +1,9 @@
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Common\bin\Debug\netstandard2.1\NovaExpediente.Common.deps.json
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Common\bin\Debug\netstandard2.1\NovaExpediente.Common.dll
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Common\bin\Debug\netstandard2.1\NovaExpediente.Common.pdb
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Common\obj\Debug\netstandard2.1\Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Common\obj\Debug\netstandard2.1\Common.AssemblyInfoInputs.cache
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Common\obj\Debug\netstandard2.1\Common.AssemblyInfo.cs
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Common\obj\Debug\netstandard2.1\Common.csproj.CoreCompileInputs.cache
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Common\obj\Debug\netstandard2.1\NovaExpediente.Common.dll
+C:\Users\Jhon Sanabria\source\repos\NovaExpediente-Desarollo\Common\obj\Debug\netstandard2.1\NovaExpediente.Common.pdb

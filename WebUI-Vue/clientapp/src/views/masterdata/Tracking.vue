@@ -1,0 +1,1151 @@
+<template>
+  <div class="wrapper vld-parent" ref="formContainer">
+    <div>
+      <CRow>
+        <CCol>
+          <CButton
+            block
+            color="primary"
+            @click="atras()"
+            class="btn btn-primary btn-lg"
+            style="
+              height: 40px;
+              width: 130px;
+              float: right;
+              color: rgba(98, 184, 235, 1);
+              background-color: transparent;
+              border-color: transparent;
+            "
+          >
+            <i class="pi pi-arrow-circle-left"></i>&nbsp;Regresar</CButton
+          >
+        </CCol>
+      </CRow>
+
+      <CCard style="border-radius: 16px !important; margin-top: 20px">
+        <CCardHeader
+          style="
+            border-radius: 16px !important;
+            padding-bottom: 0px;
+            border-bottom: transparent !important;
+            background-color: #ffffff;
+          "
+        >
+          <strong>Seguimiento</strong>
+        </CCardHeader>
+        <CCardBody style="padding-top: 0px; padding-bottom: 0px">
+          <p>Lista de solicitudes de cambio.</p>
+        </CCardBody>
+      </CCard>
+
+      <CRow class="mt-1">
+        <CCol md="12" sm="12" class="pull-right mb-1" style="">
+          <CButton
+            color="primary"
+            @click="exportar()"
+            class="pull-right btn btn-info libro-marca-celeste onHoverDark ml-1"
+          >
+            <i class="pi pi-download"></i>&nbsp;Exportar</CButton
+          >
+          <CButton
+            color="primary"
+            @click="clearFilters"
+            class="pull-right btn btn-info libro-marca-celeste onHoverDark ml-1"
+          >
+            <i class="pi pi-trash"></i>
+            Limpiar filtros
+          </CButton>
+          <CButton
+            color="primary"
+            @click="toggleFilter"
+            ref="btnFilter"
+            class="pull-right btn btn-info libro-marca-celeste onHoverDark ml-1"
+          >
+            <i class="pi pi-filter"></i>
+            {{ btnFilter.text }}
+          </CButton>
+
+          <CButton
+            color="primary"
+            @click="toggleConsultar"
+            class="pull-right btn btn-info libro-marca-celeste onHoverDark ml-1"
+          >
+            <i class="pi pi-list"></i>
+            {{ btnLista.label }}
+          </CButton>
+          <CButton
+            color="primary"
+            @click="showCambiarResponsable()"
+            class="pull-right btn btn-info libro-marca-celeste onHoverDark ml-1"
+            v-if="esRRHH()"
+          >
+            <i class="pi pi-user-edit"></i>
+            Cambiar Responsable
+          </CButton>
+          <CButton
+            color="primary"
+            @click="showAnularVacaciones()"
+            class="pull-right btn btn-info libro-marca-celeste onHoverDark ml-1"
+            v-if="esRRHH()"
+          >
+            <i class="pi pi-times-circle"></i>
+            Anular
+          </CButton>
+          <SplitButton
+            v-if="btnLista.label == 'Todas'"
+            class="pull-right libro-marca-celeste onHoverDark ml-1"
+            label="En tránsito"
+            icon="pi pi-filter"
+            :model="listaTransito"
+          ></SplitButton>
+        </CCol>
+        <CCol md="4" sm="12" class="mb-1">
+          <div class="table-header w-100">
+            <span class="p-input-icon-left w-75">
+              <i class="pi pi-search" />
+              <InputText
+                v-model="filters['global']"
+                placeholder="Escribe aquí lo que buscas"
+                class="w-100"
+              />
+            </span>
+          </div>
+        </CCol>
+      </CRow>
+
+      <CRow>
+        <CCol col>
+          <!-- <CCard style="border-radius: 16px !important; margin-top: 20px;">
+            <CCardHeader style="border-radius: 16px !important; border-bottom: transparent !important; background-color: #FFFFFF;">
+            </CCardHeader>
+            <CCardBody> -->
+          <CRow>
+            <CCol lg="12">
+              <DataTable
+                ref="dt"
+                :value="listaSolicitudes"
+                :paginator="true"
+                class="p-datatable-colaboradores p-datatable-striped p-datatable-sm"
+                :rows="10"
+                dataKey="idSolicitud"
+                :rowHover="true"
+                :filters.sync="filters"
+                :loading="loading"
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                :rowsPerPageOptions="[5, 10, 25, 50]"
+                currentPageReportTemplate="Mostrando del {first} al {last} de {totalRecords} solicitudes"
+                :sortField="obtenerCampoOrdenamiento"
+                :sortOrder="tipoOrden"
+                :autoLayout="true"
+                @update:filters="filterApplied"
+                @filter="filterApplied"
+                :selection.sync="lineaSeleccionada"
+                selectionMode="single"
+                stateStorage="session"
+                stateKey="dt-state-tracking"
+              >
+                <template #header>
+                  <CCollapse :show="collapse">
+                    <CCard color="light">
+                      <CCardBody
+                        style="
+                          padding-top: 15px !important;
+                          padding-bottom: 0px !important;
+                        "
+                      >
+                        <CRow>
+                          <div
+                            class="p-field p-col-12 p-md-5"
+                            style="padding: 10px 5px 0px 5px !important"
+                          >
+                            <span class="p-float-label">
+                              <MultiSelect
+                                v-model="filters['empresas']"
+                                :options="empresas"
+                                optionLabel="nombre"
+                                optionValue="valor"
+                                class="p-column-filter w-100"
+                                display="chip"
+                                :filter="true"
+                              >
+                              </MultiSelect>
+                              <label for="dropdown">Empresas</label>
+                            </span>
+                          </div>
+                        </CRow>
+                      </CCardBody>
+                    </CCard>
+                  </CCollapse>
+                  <div>
+                    <CBadge
+                      v-show="filtroEnTransito !== 'Todas'"
+                      color="info"
+                      v-bind:class="badgeClass(filtroEnTransito)"
+                      class="mr-2"
+                    >
+                      {{ filtroEnTransito }}
+                    </CBadge>
+                    <CBadge
+                      v-show="filters.empresas"
+                      v-for="item in filters.empresas"
+                      :key="item.idempresacorporacion"
+                      style="background-color: #29abe2"
+                      class="mr-2"
+                    >
+                      {{ item }}
+                    </CBadge>
+                  </div>
+                </template>
+                <template #empty> No se encontraron solicitudes. </template>
+                <template #loading>
+                  Cargando la información de solicitudes. Por favor espere.
+                </template>
+                <!--   <Column
+                      selectionMode="multiple"
+                      headerStyle="width: 3em"
+                    ></Column>-->
+                <Column
+                  field="idSolicitud"
+                  header="Id"
+                  :sortable="true"
+                  headerStyle="width:6%;"
+                >
+                  <template #body="slotProps">
+                    <span class="p-column-title">Id</span>
+                    {{ slotProps.data.idSolicitud }}
+                  </template>
+                  <!-- <template #filter>
+                                <InputText type="text" v-model="filters['name']" class="p-column-filter" placeholder="Search by name"/>
+                            </template> -->
+                </Column>
+                <Column
+                  header="Tipo de Solicitud"
+                  :sortable="true"
+                  sortField="tipoSolicitud"
+                  filterField="tipoSolicitud"
+                  filterMatchMode="contains"
+                  headerStyle="width:13%;"
+                >
+                  <template #body="slotProps">
+                    <span class="p-column-title">Tipo de Solicitud</span>
+
+                    <a
+                      href=""
+                      style="cursor: hand"
+                      @click.prevent="mostrarSolicitud(slotProps.data)"
+                      >{{ slotProps.data.tipoSolicitud }}</a
+                    >
+                  </template>
+                </Column>
+                <Column
+                  header="Estado"
+                  :sortable="true"
+                  sortField="estado"
+                  filterField="estado"
+                  filterMatchMode="contains"
+                  headerStyle="width:8%;"
+                >
+                  <template #body="slotProps">
+                    <span class="p-column-title">Estado</span>
+                    {{ slotProps.data.estado }}
+                  </template>
+                </Column>
+                <Column
+                  header="Autor"
+                  :sortable="true"
+                  sortField="autor"
+                  filterField="autor"
+                  filterMatchMode="contains"
+                >
+                  <template #body="slotProps">
+                    <span class="p-column-title">Autor</span>
+                    {{ slotProps.data.autor }}
+                  </template>
+                </Column>
+                <Column
+                  header="Colaborador"
+                  :sortable="true"
+                  sortField="nombreColaborador"
+                  filterField="nombreColaborador"
+                  filterMatchMode="contains"
+                >
+                  <template #body="slotProps">
+                    <span class="p-column-title">Colaborador</span>
+                    {{ slotProps.data.nombreColaborador }}
+                  </template>
+                </Column>
+                <Column
+                      header="Activo"
+                      :sortable="true"
+                      sortField="colaboradorActivo"
+                      filterField="colaboradorActivo"
+                      filterMatchMode="contains"
+                    >
+                      <template #body="slotProps">
+                        <span class="p-column-title">Activo</span>
+                        {{ slotProps.data.colaboradorActivo }}
+                      </template>
+                    </Column>
+                <Column
+                  header="Responsable"
+                  :v-show="this.$root.userRoles.some((p) => p == 'xxx')"
+                  :sortable="true"
+                  sortField="responsable"
+                  filterField="responsable"
+                  filterMatchMode="contains"
+                >
+                  <template #body="slotProps">
+                    <span class="p-column-title">Responsable</span>
+                    {{ slotProps.data.responsable }}
+                  </template>
+                </Column>
+                <Column
+                  header="Delivery Manager"
+                  :sortable="true"
+                  sortField="deliveryManager"
+                  filterField="deliveryManager"
+                  filterMatchMode="contains"
+                >
+                  <template #body="slotProps">
+                    <span class="p-column-title">Delivery Manager</span>
+                    {{ slotProps.data.deliveryManager }}
+                  </template>
+                </Column>
+                <Column
+                  header="Última modificación"
+                  :v-show="this.$root.userRoles.some((p) => p == 'xxx')"
+                  :sortable="true"
+                  sortField="fechaModificacion"
+                  filterField="fechaModificacion"
+                  filterMatchMode="contains"
+                  headerStyle="width:15%;"
+                >
+                  <template #body="slotProps">
+                    <span class="p-column-title">Última modificación</span>
+                    {{ formatearFecha(slotProps.data.fechaModificacion) }}
+                    <div
+                      class="progress"
+                      v-if="
+                        showMeter(
+                          slotProps.data.codigoEstado,
+                          slotProps.data.rango
+                        )
+                      "
+                    >
+                      <!-- <div class="progress-bar" v-bind:class="meterClass(slotProps.data.fechaModificacion)" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">{{getMeterLabel(slotProps.data.fechaModificacion)}}</div> -->
+                      <div
+                        class="progress-bar"
+                        v-bind:class="meterClass(slotProps.data.rango)"
+                        role="progressbar"
+                        style="width: 100%"
+                        aria-valuenow="100"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      >
+                        {{ getMeterLabel(slotProps.data.rango) }}
+                      </div>
+                    </div>
+                  </template>
+                </Column>
+                <Column
+                  header="Empresa"
+                  filterField="empresas"
+                  filterMatchMode="custom"
+                  :filterFunction="customFilter"
+                  headerStyle="display:none;"
+                  bodyStyle="display:none;"
+                >
+                </Column>
+              </DataTable>
+            </CCol>
+          </CRow>
+          <!-- </CCardBody>
+          </CCard> -->
+        </CCol>
+      </CRow>
+    </div>
+
+    <Dialog
+      :visible.sync="mostrarCambioResponsable"
+      :style="{ width: '35vw' }"
+      :modal="true"
+    >
+      <template #header>
+        <h5>Cambiar responsable</h5>
+      </template>
+      <CRow class="pt-2">
+        <CCol sm="12" lg="12" class="pull-right">
+          <CSelect
+            label="Seleccione el nuevo responsable"
+            :options="responsableList"
+            :value.sync="nuevoResponsable"
+            add-label-classes="label-title"
+          />
+        </CCol>
+      </CRow>
+
+      <template #footer>
+        <CButton
+          color="primary"
+          @click="cambiarResponsable()"
+          class="mr-1 btn btn-info libro-marca-azuloscuro"
+        >
+          <span class="pi pi-check"></span> <span>Cambiar responsable</span>
+        </CButton>
+        <CButton
+          color="primary"
+          @click="mostrarCambioResponsable = false"
+          class="mr-1 btn btn-info libro-marca-celeste"
+        >
+          <span class="pi pi-times"></span> <span>Cancelar</span>
+        </CButton>
+      </template>
+    </Dialog>
+    <Dialog
+      :visible.sync="mostrarAnularVacaciones"
+      :style="{ width: '35vw' }"
+      :modal="true"
+    >
+      <template #header>
+        <h5>Anular Solicitud</h5>
+      </template>
+      <CRow class="pt-2">
+        <CCol sm="12" lg="12" class="pull-right">
+          <!-- <FormulateInput
+            type="textarea"
+            name="comentario"
+            label="Comentario"
+            :input-class="['form-control']"
+            rows="4"
+            :help-class="['hint']"
+          /> -->
+          <CTextarea
+            v-model="comentario"
+            label="Comentario"
+            placeholder="Ingrese un comentario para la anulación."
+            vertical
+            rows="4"
+          />
+        </CCol>
+      </CRow>
+
+      <template #footer>
+        <CButton
+          color="primary"
+          @click="AnularVacaciones()"
+          class="mr-1 btn btn-info libro-marca-azuloscuro"
+        >
+          <span class="pi pi-check"></span> <span>Anular</span>
+        </CButton>
+        <CButton
+          color="primary"
+          @click="mostrarAnularVacaciones = false"
+          class="mr-1 btn btn-info libro-marca-celeste"
+        >
+          <span class="pi pi-times"></span> <span>Cancelar</span>
+        </CButton>
+      </template>
+    </Dialog>
+  </div>
+</template>
+
+<script>
+import Vue from "vue";
+
+import {
+  GetSolicitudesPorPerfil,
+  GetSolicitudesBuzon,
+  CambiarResponsable,
+  GetResponsablePorPerfil,
+  GetEmpresaCorporacion,
+  AnularSolicitud,
+} from "./request";
+//import { obtenerTiposSolicitudes, GetColaboradoresCV } from "../generales/Consultas/request";
+import { aplicarFormatoFecha } from "../../utils";
+import XLSX from "sheetjs-style";
+
+export default {
+  name: "Tracking",
+  data() {
+    return {
+      comentario: "",
+      mostrarCambioResponsable: false,
+      mostrarAnularVacaciones: false,
+      responsableList: [],
+      nuevoResponsable: 0,
+      lineaSeleccionada: null,
+      dt: null,
+      innerCollapse: false,
+      collapse: false,
+      btnFilter: {
+        text: "Mostrar filtros",
+      },
+      solicitudes: null,
+      filters: {},
+      loading: true,
+      primaryModal: false,
+      items: [],
+      tiposDeSolicitud: [],
+      empresas: [],
+      solicitudSeleccionada: 0,
+      loader: null,
+      esGrupo: true,
+      btnLista: {
+        label: "Todas",
+      },
+      campoOrdenamiento: "fechaModificacion",
+      tipoOrden: 1,
+      filtroEnTransito: "Todas",
+      listaTransito: [
+        {
+          label: "A tiempo",
+          icon: "pi pi-circle-on text-success",
+          command: () => {
+            this.filtroEnTransito = "A tiempo";
+          },
+        },
+        {
+          label: "Requiere atención",
+          icon: "pi pi-circle-on text-warning",
+          command: () => {
+            this.filtroEnTransito = "Requiere atención";
+          },
+        },
+        {
+          label: "Vencidas",
+          icon: "pi pi-circle-on text-danger",
+          command: () => {
+            this.filtroEnTransito = "Vencidas";
+          },
+        },
+        {
+          label: "Todas",
+          icon: "pi pi-circle-off",
+          command: () => {
+            this.filtroEnTransito = "Todas";
+          },
+        },
+      ],
+    };
+  },
+  async mounted() {
+    this.cargarDatos("Tracking");
+    this.getListaEmpresas();
+    this.lineaSeleccionada= null;
+  },
+  methods: {
+    esRRHH() {
+      return this.$root.userRoles.some((p) => p == "Expediente.RRHH");
+    },
+    async getListaEmpresas() {
+      try {
+        const { data } = await GetEmpresaCorporacion();
+        this.empresas = data.empresaCorporacions;
+        this.empresas.unshift({
+          nombre: "Sin empresa",
+          valor: "",
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async showCambiarResponsable() {
+      this.responsableList = [];
+      this.nuevoResponsable = 0;
+      if (this.lineaSeleccionada) {
+        if (
+          this.lineaSeleccionada.codigoEstado == "EV" ||
+          this.lineaSeleccionada.codigoEstado == "EA"
+        ) {
+          let idResponsable = this.lineaSeleccionada.idusuarioresponsable;
+          let IdColaboradorSolicitud = this.lineaSeleccionada.idAutor;
+          let idTipoSolicitud = this.lineaSeleccionada.idTipoSolicitud;
+          let codigoEstado = this.lineaSeleccionada.codigoEstado;
+
+          //call method getresponsablesXPerfil
+          const {
+            data: { responsables },
+          } = await GetResponsablePorPerfil(
+            idResponsable,
+            IdColaboradorSolicitud,
+            idTipoSolicitud,
+            codigoEstado
+          );
+          this.responsableList = responsables.map(
+            ({ idcolaborador, nombreCompleto }) => ({
+              value: idcolaborador,
+              label: nombreCompleto,
+            })
+          );
+
+          this.responsableList.push({
+            label: "Seleccione un responsable",
+            value: 0,
+          });
+
+          this.mostrarCambioResponsable = true;
+        } else {
+          Vue.$toast.warning(
+            "Debe de seleccionar una solicitud en estado de Validación o de Aprobación.",
+            {}
+          );
+        }
+      } else {
+        Vue.$toast.warning("Debe de seleccionar una solicitud.", {});
+      }
+    },
+
+    async cambiarResponsable() {
+      if (this.nuevoResponsable > 0) {
+        let result = await CambiarResponsable({
+          id: this.lineaSeleccionada.idSolicitud,
+          idResponsable: this.nuevoResponsable,
+        });
+
+        if (result.data > 0) {
+          Vue.$toast.success(
+            "Se ha cambiado el responsable correctamente.",
+            {}
+          );
+          this.mostrarCambioResponsable = false;
+          this.cargarDatos("Tracking");
+          this.lineaSeleccionada = null;
+        } else {
+          Vue.$toast.error("No se pudo cambiar el responsable.", {});
+        }
+      } else {
+        Vue.$toast.warning("Debe de seleccionar un responsable.", {});
+      }
+    },
+
+    showAnularVacaciones() {
+      if (this.lineaSeleccionada != null) {
+        if (this.lineaSeleccionada.codigoEstado != "AN" && this.lineaSeleccionada.codigoEstado != "AP"  &&this.lineaSeleccionada.codigoEstado != "DE"  ) {
+          this.mostrarAnularVacaciones = true;
+        } else {
+          Vue.$toast.warning("La solicitud debe de estar en un estado de tránsito.", {});
+        }
+      } else {
+        Vue.$toast.warning("Debe de seleccionar una solicitud.", {});
+      }
+    },
+
+    async AnularVacaciones() {
+      if (this.comentario.trim() == "") {
+        Vue.$toast.warning("Debe de ingresar un comentario.", {});
+      } else {
+        let result = await AnularSolicitud({
+          Id: this.lineaSeleccionada.idSolicitud,
+          IdColaborador: this.$root.infoColaboradorActual.id,
+          comentario: this.comentario,
+        });
+
+        if (result.data > 0) {
+          Vue.$toast.success("Se ha anulado la solicitud correctamente.", {});
+          this.mostrarAnularVacaciones = false;
+          this.cargarDatos("Tracking");
+          this.lineaSeleccionada = null;
+          this.comentario = "";
+        } else {
+          Vue.$toast.error("No se pudo anular la solicitud.", {});
+        }
+      }
+    },
+
+    formatearFecha(fecha) {
+      return aplicarFormatoFecha(fecha, "dd-MM-yyyy");
+    },
+    toggleFilter() {
+      this.collapse = !this.collapse;
+      this.btnFilter.text = this.collapse
+        ? "Ocultar filtros"
+        : "Mostrar filtros";
+    },
+    clearFilters() {
+      this.filters = {};
+    },
+    async toggleConsultar() {
+      if (this.btnLista.label == "Todas") {
+        await this.cargarDatos("Todas");
+        this.campoOrdenamiento = "fechaModificacion";
+        this.tipoOrden = -1;
+      } else {
+        await this.cargarDatos("Tracking");
+        this.campoOrdenamiento = "fechaModificacion";
+        this.tipoOrden = 1;
+      }
+      // this.filters = {};
+      this.btnLista.label =
+        this.btnLista.label == "Todas" ? "En tránsito" : "Todas";
+      this.filtroEnTransito = "Todas";
+    },
+    filterApplied(e) {},
+    /**
+     * Retorna una promesa para obtener la lista de solicitudes
+     */
+    async getLista(id, tipo) {
+      try {
+        return GetSolicitudesBuzon(id, tipo);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    /**
+     * Obtiene los datos del tipo de solicitud que el usuario desea crear
+     * para luego invocar el método que se encarga de mostrar la vista
+     * según el tipo de solicitud
+     */
+    async crearSolicitud() {
+      try {
+        let inbox = this;
+        // oculta popup
+        this.cancelarMostrarTiposSolicitud();
+
+        // busca el tipo de solicitud seleccionada por el usuario
+        let indice = this.tiposDeSolicitud.findIndex(function (tipo, index) {
+          if (tipo.value == inbox.solicitudSeleccionada) return true;
+        });
+        // carga el formulario según el tipo de solicitud
+        this.cargarSolicitud(
+          this.obtenerObjetoCargarSolicitud(
+            inbox.tiposDeSolicitud[indice].value,
+            inbox.tiposDeSolicitud[indice].label,
+            null // solicitud nueva
+          )
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    /**
+     * Obtiene los datos del tipo de solicitud asociada a la solicitud
+     * que el usuario desea abrir para luego invocar el método que se
+     * encarga de mostrar la vista según el tipo de solicitud
+     *
+     * @datosSolicitud datos de la solicitud que seleccionada por el usuario
+     */
+    mostrarSolicitud(datosSolicitud) {
+      // carga el formulario según el tipo de solicitud
+      this.cargarSolicitud(
+        this.obtenerObjetoCargarSolicitud(
+          datosSolicitud.idTipoSolicitud,
+          datosSolicitud.tipoSolicitud,
+          datosSolicitud.idSolicitud
+        )
+      );
+    },
+    /**
+     * Redirige al usuario a la vista correspondiente del tipo de solicitud
+     */
+    cargarSolicitud(solicitud) {
+      this.$router.push({
+        name: "MasterData",
+        params: {
+          origen: "Tracking", // origen desde donde se accedio la vista
+          idTipoSolicitud: solicitud.idTipoSolicitud, // id del tipo de la solicitud generada
+          tipoSolicitud: solicitud.tipoSolicitud, // nombre del tipo de la solicitud generada
+          idSolicitud: solicitud.idSolicitud,
+        },
+      });
+    },
+    /**
+     * Genera objeto con los datos de la solicitud que se desea mostrar
+     */
+    obtenerObjetoCargarSolicitud(idTipoSolicitud, tipoSolicitud, idSolicitud) {
+      return {
+        idTipoSolicitud: idTipoSolicitud,
+        tipoSolicitud: tipoSolicitud,
+        idSolicitud: idSolicitud,
+      };
+    },
+    async submit(registroActual) {
+      try {
+        // let loader = this.showLoader();
+        //const { data } = await Upsert(registroActual);
+        //this.primaryModal = false;
+        //this.toast = { show: true, message: "Se almaceno con exito" };
+        //this.getLista();
+        // this.hideLoader(loader);
+      } catch (error) {
+        // this.toast = {
+        //    show: true,
+        //    message: `Se produjo un errror ${error.message}`,
+        // };
+      }
+    },
+    showLoader() {
+      return this.$loading.show({
+        // Optional parameters
+        container: this.fullPage ? null : this.$refs.formContainer,
+        canCancel: true,
+        onCancel: this.onCancel,
+      });
+    },
+    hideLoader(loader) {
+      setTimeout(() => {
+        loader.hide();
+      }, 300);
+    },
+    /**
+     * Retorna la promesa asociada a la llamada asíncrona
+     * del API que devuelve la lista de tipos de solicitud
+     * según el perfil del usuario
+     */
+    async obtenerTiposSolicitudes() {
+      return GetSolicitudesPorPerfil();
+    },
+    /***
+     * Carga lo datos requeridos para la vista
+     */
+    async cargarDatos(tipo) {
+      let tracking = this;
+      let loader = tracking.showLoader();
+
+      tracking.loading = true;
+
+      await tracking
+        .getLista(this.$root.infoColaboradorActual.id, tipo)
+        // lista de solicitudes
+        .then(function (result) {
+          tracking.solicitudes = result.data.solicitudesMasterData;
+          tracking.loading = false;
+          tracking.hideLoader(loader);
+        })
+        .catch((error) => {
+          console.error("(2) Inside error:", error);
+        });
+    },
+    claseEstado: function (estado) {
+      return {
+        "text-success": estado === "AP",
+        "text-danger": estado === "DE" || estado === "DC",
+        "text-warning": !(
+          estado === "AP" ||
+          estado === "DE" ||
+          estado === "DC"
+        ),
+      };
+    },
+    showMeter: function (estado, rango) {
+      return (
+        !(estado === "AP" || estado === "DE" || estado === "DC") && rango != 0
+      );
+    },
+    badgeClass(tipoFiltro) {
+      return {
+        "bg-success": tipoFiltro == "A tiempo",
+        "bg-warning": tipoFiltro == "Requiere atención",
+        "bg-danger": tipoFiltro == "Vencidas",
+      };
+    },
+    meterClass(rango) {
+      //(fecha){
+      return {
+        "bg-success": rango == 1,
+        "bg-warning": rango == 2,
+        "bg-danger": rango == 3,
+      };
+    },
+    getMeterLabel(rango) {
+      let label = "";
+      switch (rango) {
+        case 1:
+          label = "<= 3 días";
+          break;
+        case 2:
+          label = "> 3 y <= 8 días";
+          break;
+        case 3:
+          label = "> 8 días";
+          break;
+
+        default:
+          break;
+      }
+      return label;
+    },
+    obtenerDiferenciaDias(fecha) {
+      var ToDate = new Date();
+      var fromDate = new Date(fecha);
+      var Difference_In_Time = ToDate.getTime() - fromDate.getTime();
+      return Difference_In_Time / (1000 * 3600 * 24);
+    },
+    async exportar() {
+      var data = this.$refs.dt.processedData.map(
+        ({
+          idSolicitud,
+          tipoSolicitud,
+          estado,
+          autor,
+          nombreColaborador,
+          responsable,
+          fechaModificacion,
+          deliveryManager,
+        }) => ({
+          Id_Solicitud: idSolicitud,
+          Tipo_Solicitud: tipoSolicitud,
+          Estado: estado,
+          Autor: autor,
+          Colaborador: nombreColaborador,
+          Responsable: responsable,
+          Delivery_Manager: deliveryManager,
+          Fecha_Ultima_Modificacion: fechaModificacion,
+        })
+      );
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, "Reporte_Seguimiento.csv");
+      XLSX.writeFile(wb, `Reporte_Seguimiento_${this.getDateTime()}.csv`);
+      Vue.$toast.success("Generación exitosa del archivo.");
+    },
+    getDateTime() {
+      const today = new Date();
+      const date =
+        today.getFullYear() +
+        "-" +
+        (today.getMonth() + 1) +
+        "-" +
+        today.getDate();
+      const time =
+        today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+      const dateTime = date + "_" + time;
+      return dateTime;
+    },
+    customFilter(value, filter) {
+      if (
+        filter === undefined ||
+        filter === null ||
+        (typeof filter === "string" && filter.trim() === "") ||
+        (typeof filter === "object" && filter.length === 0)
+      ) {
+        return true;
+      }
+
+      if (value === undefined || value === null) {
+        return false;
+      }
+
+      for (let i = 0; i < filter.length; i++) {
+        if (
+          (value === "" && filter[i] === "") ||
+          (filter[i] !== "" && value.indexOf(filter[i]) !== -1)
+        ) {
+          return true;
+        }
+      }
+      return false; //value.indexOf(filter) !== -1;
+    },
+  },
+  computed: {
+    obtenerCampoOrdenamiento() {
+      return this.campoOrdenamiento;
+    },
+    listaSolicitudes() {
+      if (this.btnLista.label == "Todas") {
+        switch (this.filtroEnTransito) {
+          case "Todas":
+            return this.solicitudes;
+          case "A tiempo":
+            return this.solicitudes.filter(function (el) {
+              return el.rango == 1;
+            });
+          case "Requiere atención":
+            return this.solicitudes.filter(function (el) {
+              return el.rango == 2;
+            });
+          case "Vencidas":
+            return this.solicitudes.filter(function (el) {
+              return el.rango == 3;
+            });
+          default:
+            return this.solicitudes;
+        }
+      } else return this.solicitudes;
+    },
+  },
+};
+</script>
+
+<style>
+.label-title {
+  font-weight: 700;
+}
+.label-name {
+  font-variant: small-caps;
+  text-align: center;
+}
+.libro-marca-azuloscuro {
+  background-color: #002e6e !important;
+}
+.libro-marca-celeste {
+  background-color: #29abe2;
+}
+
+.breadcrumb-item + .font-xl.breadcrumb-item::before {
+  color: rgb(140, 195, 38);
+  content: ">>";
+  padding: 0px 10px;
+}
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(173, 216, 230, 0.5) !important;
+}
+.page-item.active .page-link {
+  background-color: #29abe2;
+  border-color: #29abe2;
+}
+.page-link {
+  color: #29abe2;
+}
+.btn-link {
+  color: #002e6e;
+}
+.pagination {
+  justify-content: flex-end !important;
+}
+
+.modal-header {
+  background-color: #002e6e !important;
+}
+.modal-primary .modal-content {
+  border-color: #002e6e !important;
+}
+
+/* Configuración de estilos para tabla PRIMEVUE */
+/* INICIO */
+
+/* Se modifica el tamaño de la letra a 14px */
+.p-component {
+  font-size: 0.875rem !important;
+}
+.p-dropdown-label.p-inputtext {
+  font-size: 0.875rem !important;
+}
+
+/* Se oculta la flecha del dropdown */
+.dropdown-toggle::after {
+  display: none;
+}
+.dropleft .dropdown-toggle::before {
+  display: none;
+}
+
+/* tamaño de letra el componente de paginación */
+.p-paginator-icon {
+  font-size: 0.875rem !important;
+}
+
+/* Responsive: en visualización normal se ocultan las etiquetas asociadas al título de cada columna */
+.p-datatable-colaboradores .p-datatable-tbody > tr > td .p-column-title {
+  display: none;
+}
+/* configuración del encabezado y cuerpo de la tabla */
+.p-datatable-colaboradores .p-datatable-thead > tr > th {
+  background-color: rgb(12, 123, 190) !important;
+  color: white !important;
+}
+.p-datatable-colaboradores .p-datatable-tbody > tr > td {
+  overflow-wrap: break-word;
+}
+.p-datatable .p-datatable-header {
+  background-color: unset;
+  border: unset;
+}
+
+/* configuración de los íconos de ordenamiento */
+.p-datatable .p-sortable-column .p-sortable-column-icon {
+  color: darkgray;
+  font-size: 0.75rem;
+}
+.p-datatable .p-sortable-column.p-highlight .p-sortable-column-icon {
+  color: white;
+}
+
+/* configuración del "striped" y fila seleccionada de una tabla */
+.p-datatable.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) {
+  background-color: rgba(173, 216, 230, 0.5);
+}
+
+.p-datatable .p-datatable-tbody > tr.p-highlight {
+  background: rgba(12, 123, 190, 0.5);
+  /* color: #495057; */
+}
+
+.p-datatable.p-datatable-striped
+  .p-datatable-tbody
+  > tr:nth-child(even).p-highlight {
+  background: rgba(12, 123, 190, 0.5);
+  /* color: #495057; */
+}
+
+.btn-opciones {
+  display: none;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  border: 1px solid rgba(175, 189, 216, 1);
+}
+
+.p-datatable table {
+  width: 99%;
+  background-color: #f8f8f8;
+}
+
+.p-datatable .p-paginator-bottom {
+  width: 99%;
+}
+
+/* soporte a responsive para que cada fila de la tabla se presente mediante la combinación de
+   etiqueta y valor asociado */
+@media screen and (max-width: 40em) {
+  .p-datatable.p-datatable-colaboradores .p-datatable-thead > tr > th {
+    display: none !important;
+  }
+
+  .p-datatable.p-datatable-colaboradores .p-datatable-tfoot > tr > td {
+    display: none !important;
+  }
+
+  .p-datatable.p-datatable-colaboradores .p-datatable-tbody > tr > td {
+    text-align: left;
+    display: block;
+    width: 100%;
+    float: left;
+    clear: left;
+    border: 0 none;
+  }
+
+  .p-datatable-colaboradores .p-datatable-tbody > tr > td .p-column-title {
+    padding: 0.4rem;
+    min-width: 30%;
+    display: inline-block !important;
+    margin: -0.4em 1em -0.4em -0.4rem;
+    font-weight: bold;
+    width: 100%;
+  }
+
+  .p-datatable.p-datatable-colaboradores:last-child {
+    border-bottom: 1px solid var(--surface-d);
+  }
+
+  .dropdown-toggle::after {
+    display: inline-block;
+  }
+  .dropleft .dropdown-toggle::before {
+    display: inline-block;
+  }
+  .dropleft {
+    display: none;
+  }
+  .pi-ellipsis-v {
+    display: none;
+  }
+  .btn-opciones {
+    display: flex;
+  }
+  .p-paginator-bottom {
+    padding: 0px;
+  }
+}
+/* FIN */
+</style>
