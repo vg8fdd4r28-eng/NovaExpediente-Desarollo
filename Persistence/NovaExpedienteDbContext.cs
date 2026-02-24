@@ -164,6 +164,7 @@ namespace NovaExpediente.Persistence
         #region Overrided Methods
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
+            // Inyecta datos de auditoría en entidades nuevas o modificadas justo antes de persistir.
             foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
             {
                 switch (entry.State)
@@ -241,7 +242,7 @@ namespace NovaExpediente.Persistence
                 while (dataReader.Read())
                 {
 
-
+                    // El SP devuelve el JSON en varias filas; se van concatenando.
                     cv.JsonResult += dataReader.GetString(0);
 
 
@@ -338,7 +339,7 @@ namespace NovaExpediente.Persistence
                 }
                 catch (System.Exception ex)
                 {
-                    // en caso de error se asocia la excepción a la solicitud
+                    // Guarda el error en la solicitud y la regresa a estado pendiente para que el flujo no quede huérfano.
                     SolicitudMasterData solicitud = await this.SolicitudMasterData.FindAsync(idSolicitud);
                     solicitud.RESULTADOACTUALIZA = ex.ToString();
                     solicitud.ESTADOSOLICITUD = "PE";
@@ -385,6 +386,7 @@ namespace NovaExpediente.Persistence
             var reader = await command.ExecuteReaderAsync();
             while (reader.Read())
             {
+                // El procedimiento retorna una única fila; se corta el ciclo tras mapearla.
                 resultado = new Dictionary<string, object>() {
                     { "IDNOMINA", reader.GetInt32("IDNOMINA") },
                     { "FECHAINICIO", reader.GetDateTime("FECHAINICIO") },
@@ -467,6 +469,7 @@ namespace NovaExpediente.Persistence
 
                 while (dataReader.Read())
                 {
+                    // Agrupa las métricas por DM reutilizando el diccionario interno en cada fila.
                     if (diccionario.ContainsKey(dataReader.GetInt32(0)))
                     {
                         ((Dictionary<string, int>)diccionario[dataReader.GetInt32(0)])[dataReader.GetString(1)] = dataReader.GetInt32(2);
@@ -588,6 +591,7 @@ namespace NovaExpediente.Persistence
                 command.Parameters.Add(new SqlParameter("@datos", data));
                 command.Parameters.Add(new SqlParameter("@ReturnValue", SqlDbType.Int));
                 command.Parameters["@ReturnValue"].Direction = ParameterDirection.ReturnValue;
+                // El SP devuelve el nuevo ID como parámetro de retorno; no viene en un result set.
 
                 this.Database.OpenConnection();
 
@@ -644,6 +648,7 @@ namespace NovaExpediente.Persistence
                     };
 
                 }
+                // El lector trae dos result sets: primero el detalle, luego los comentarios.
                 dataReader.NextResultAsync();
 
                 comentarios = new List<ComentarioSolicitudDto>();
@@ -936,6 +941,7 @@ namespace NovaExpediente.Persistence
 
             this.Database.OpenConnection();
 
+            // Reutiliza el mismo comando parametrizado para minimizar roundtrips al servidor.
             foreach (var key in saldos.Keys)
             {
                 command.Parameters["idcolaborador"].Value = key;
@@ -1030,6 +1036,7 @@ namespace NovaExpediente.Persistence
 
                 while (dataReader.Read())
                 {
+                    // El SP devuelve el payload serializado en la primera columna (JSON escapado).
                     res = dataReader.GetString(0); //The 0 stands for "the 0'th column", so the first column of the result.
                                                    // Do something with this rows string, for example to put them in to a list
 
